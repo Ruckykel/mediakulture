@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function HowItWorks() {
   return (
-    <section className="w-full bg-white min-h-[calc(100vh-160px)] pt-20 pb-20">
+    <section className="w-full bg-white min-h-[calc(100vh-160px)] pt-20 pb-0 md:pb-20">
       <div className="max-w-7xl mx-auto px-8 h-full flex flex-col justify-center">
         {/* Decorative Elements */}
         <div className="text-center mb-8">

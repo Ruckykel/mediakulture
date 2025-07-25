@@ -34,7 +34,7 @@ export default function TrustedBy() {
   }, [logos.length]);
 
   return (
-    <section className="w-full bg-white py-16">
+    <section className="w-full bg-white pt-0 md:pt-16 pb-16">
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -65,7 +65,7 @@ export default function TrustedBy() {
                   alt={logo.name}
                   width={120}
                   height={60}
-                  className="h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                  className="h-8 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
                 />
               </div>
             ))}

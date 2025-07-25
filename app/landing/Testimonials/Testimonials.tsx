@@ -49,7 +49,7 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className="w-full bg-white py-20">
+    <section id="pricing" className="w-full bg-white pt-20 pb-0 md:pb-20">
       {/* Header within max-width container */}
       <div className="max-w-7xl mx-auto px-8 mb-16">
         <div className="text-center">

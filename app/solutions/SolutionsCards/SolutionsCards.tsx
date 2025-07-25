@@ -43,7 +43,7 @@ export default function SolutionsCards() {
   ];
 
   return (
-    <section className="w-full bg-white py-20">
+    <section className="w-full bg-white pt-20 pb-0 md:pb-20">
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-16">

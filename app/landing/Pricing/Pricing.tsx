@@ -48,7 +48,7 @@ export default function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="w-full bg-white py-20">
+    <section id="pricing" className="w-full bg-white pt-0 md:pt-20 pb-20">
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -63,7 +63,7 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <div
+            <div 
               key={plan.name}
               className={`rounded-2xl p-8 text-center ${
                 plan.isHighlighted 
@@ -102,7 +102,7 @@ export default function Pricing() {
               {/* Features */}
               <div className="space-y-3 mb-8">
                 {plan.features.map((feature, featureIndex) => (
-                  <div
+                  <div 
                     key={featureIndex}
                     className={`text-sm ${
                       plan.isHighlighted ? 'text-gray-300' : 'text-gray-600'
@@ -114,7 +114,7 @@ export default function Pricing() {
               </div>
 
               {/* CTA Button */}
-              <button
+              <button 
                 className={`w-full py-3 px-6 rounded-full font-medium transition-colors duration-200 ${plan.buttonColor} ${plan.buttonTextColor}`}
               >
                 Order Now

@@ -3,10 +3,10 @@ import Image from "next/image";
 export default function HeroSection() {
   return (
     <section className="w-full bg-gradient-to-r from-[#d3dbeb] to-white min-h-screen pt-28">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between h-full px-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between h-full px-4 md:px-8">
         {/* Left Side */}
-        <div className="flex-1 flex flex-col justify-center items-start max-w-xl">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-black leading-tight mb-6">
+        <div className="flex-1 flex flex-col justify-center items-center md:items-start max-w-full md:max-w-xl text-center md:text-left">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-black leading-tight mb-6">
             Smart Tools.<br />
             Real Results.
           </h1>
@@ -15,7 +15,7 @@ export default function HeroSection() {
             for brands, creators, and agencies to simplify content<br />
             creation, distribution, and performance.
           </p>
-          <div className="flex gap-6">
+          <div className="flex gap-6 justify-center md:justify-start">
             <button className="bg-[#20408B] hover:bg-[#16306a] text-white px-8 py-3 rounded-full text-base font-medium transition-all hover:scale-105">
               Join Now
             </button>
@@ -29,20 +29,20 @@ export default function HeroSection() {
         </div>
 
         {/* Right Side */}
-        <div className="flex-1 flex justify-end items-center mt-12 md:mt-0 relative">
+        <div className="flex-1 flex justify-center md:justify-end items-center mt-12 md:mt-0 relative">
           <div className="transform transition-transform hover:scale-102">
             <Image
               src="/ManPointing.png"
               alt="Professional man pointing to insights"
               width={500}
               height={600}
-              className=""
+              className="w-96 md:w-auto h-auto"
               priority
             />
           </div>
           
           {/* Curved Arrow - positioned to link left text to right image */}
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-16">
+          <div className="hidden md:block absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-16">
             <Image
               src="/CurvedArrow.svg"
               alt="Curved arrow pointing to insights"

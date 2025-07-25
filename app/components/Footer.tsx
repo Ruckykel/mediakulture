@@ -76,7 +76,7 @@ export default function Footer() {
             </div>
 
             {/* Navigation Links */}
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
               {navigationLinks.map((link) => (
                 <Link
                   key={link.name}

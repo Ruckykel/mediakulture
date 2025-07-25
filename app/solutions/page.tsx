@@ -2,20 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import HeroSection from "./landing/HeroSection/HeroSection";
-import HowItWorks from "./landing/HowItWorks/HowItWorks";
-import WhyChooseUs from "./landing/WhyChooseUs/WhyChooseUs";
-import TrustedBy from "./landing/TrustedBy/TrustedBy";
-import Testimonials from "./landing/Testimonials/Testimonials";
-import Pricing from "./landing/Pricing/Pricing";
-import CTA from "./landing/CTA/CTA";
+import Pricing from "../landing/Pricing/Pricing";
+import HeroSection from "./HeroSection/HeroSection";
+import SolutionsCards from "./SolutionsCards/SolutionsCards";
+import FeaturesSection from "./FeaturesSection/FeaturesSection";
+import CTASection from "./CTASection/CTASection";
 
-export default function Home() {
+export default function SolutionsPage() {
   const [isFading, setIsFading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Listen for clicks on login/signup, FAQ, contact, solutions, pricing, and features links
+    // Listen for clicks on all navigation links
     const handleNavigationClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const authLink = target.closest('a[href^="/auth/"]');
@@ -24,9 +22,10 @@ export default function Home() {
       const solutionsLink = target.closest('a[href="/solutions"]');
       const pricingLink = target.closest('a[href="#pricing"]');
       const featuresLink = target.closest('a[href="/solutions#features"]');
+      const homeLink = target.closest('a[href="/"]');
       const signupLink = target.closest('a[href="/auth/signup"]');
 
-      if (authLink || faqLink || contactLink || solutionsLink || featuresLink || signupLink) {
+      if (authLink || faqLink || contactLink || solutionsLink || pricingLink || homeLink || signupLink) {
         e.preventDefault();
         setIsFading(true);
 
@@ -40,18 +39,20 @@ export default function Home() {
             router.push('/contact');
           } else if (solutionsLink) {
             router.push('/solutions');
-          } else if (featuresLink) {
-            router.push('/solutions#features');
+          } else if (pricingLink) {
+            router.push('/#pricing');
+          } else if (homeLink) {
+            router.push('/');
           } else if (signupLink) {
             router.push('/auth/signup');
           }
         }, 300);
-      } else if (pricingLink) {
+      } else if (featuresLink) {
         e.preventDefault();
-        // Scroll to pricing section on the same page
-        const pricingSection = document.getElementById('pricing');
-        if (pricingSection) {
-          pricingSection.scrollIntoView({ behavior: 'smooth' });
+        // Scroll to features section on the same page
+        const featuresSection = document.getElementById('features');
+        if (featuresSection) {
+          featuresSection.scrollIntoView({ behavior: 'smooth' });
         }
       }
     };
@@ -64,14 +65,12 @@ export default function Home() {
   }, [router]);
 
   return (
-    <main className={`transition-opacity duration-300 ${isFading ? 'opacity-30' : 'opacity-100'}`}>
+    <div className={`min-h-screen bg-white transition-opacity duration-300 ${isFading ? 'opacity-30' : 'opacity-100'}`}>
       <HeroSection />
-      <HowItWorks />
-      <WhyChooseUs />
-      <TrustedBy />
-      <Testimonials />
+      <SolutionsCards />
+      <FeaturesSection />
       <Pricing />
-      <CTA />
-    </main>
+      <CTASection />
+    </div>
   );
-}
+} 

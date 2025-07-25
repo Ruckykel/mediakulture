@@ -119,7 +119,7 @@ export default function Footer() {
             <div className="md:flex md:justify-end">
               <Link
                 href="/auth/signup"
-                className="bg-[#20408B] hover:bg-[#16306a] text-white px-6 py-3 rounded-full font-medium transition-colors flex items-center gap-2"
+                className="bg-[#20408B] hover:bg-[#16306a] text-white px-8 py-3 rounded-full text-base font-medium transition-colors flex items-center gap-2"
               >
                 Sign Up
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

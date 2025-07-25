@@ -47,10 +47,10 @@ export default function SolutionsCards() {
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-sm font-medium text-[#20408B] uppercase tracking-wider mb-4">
+          <p className="text-[#20408B] text-sm font-bold uppercase tracking-wide mb-4">
             Solutions
           </p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black leading-tight">
+          <h2 className="text-2xl md:text-3xl font-bold text-black leading-tight">
             Designed for Every Digital Role
           </h2>
         </div>
@@ -62,10 +62,10 @@ export default function SolutionsCards() {
               <div className={`w-12 h-12 ${solution.iconBg} rounded-lg flex items-center justify-center mb-6`}>
                 {solution.icon}
               </div>
-              <h3 className="text-xl font-bold text-black mb-4">
+              <h3 className="text-lg font-bold text-black mb-4">
                 {solution.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 text-sm leading-relaxed">
                 {solution.description}
               </p>
             </div>

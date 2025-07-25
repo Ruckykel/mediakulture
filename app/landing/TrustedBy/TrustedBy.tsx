@@ -38,7 +38,7 @@ export default function TrustedBy() {
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
+          <h2 className="text-base md:text-lg font-semibold text-black mb-4">
             Trusted by brands, creators, and agencies
           </h2>
         </div>

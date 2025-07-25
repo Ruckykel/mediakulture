@@ -52,7 +52,7 @@ export default function WhyChooseUs() {
           <div className="space-y-8">
             {/* Header */}
             <div className="space-y-4">
-              <p className="text-[#1e40af] text-sm font-semibold uppercase tracking-wide">
+              <p className="text-[#20408B] text-sm font-bold uppercase tracking-wide">
                 WHY CHOOSE US
               </p>
               <h2 className="text-2xl md:text-3xl font-bold text-black leading-tight mb-4">
@@ -74,7 +74,7 @@ export default function WhyChooseUs() {
                     <h3 className="text-lg font-bold text-black">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 text-base leading-relaxed">
+                    <p className="text-gray-600 text-sm leading-relaxed">
                       {feature.description}
                     </p>
                   </div>

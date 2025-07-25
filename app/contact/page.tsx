@@ -33,8 +33,8 @@ export default function ContactPage() {
             {/* Top Section - Get Started */}
             <div className="flex justify-between items-start">
               <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-600">Get Started</p>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black leading-tight">
+                <p className="text-[#20408B] text-sm font-bold uppercase tracking-wide mb-4">Get Started</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-black leading-tight">
                   Get in touch with us.
                   <br />
                   We&apos;re here to assist you.
@@ -114,7 +114,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="bg-[#20408B] hover:bg-[#16306a] text-white px-8 py-3 rounded-full font-medium transition-all hover:scale-105 flex items-center gap-2"
+                className="bg-[#20408B] hover:bg-[#16306a] text-white px-8 py-3 rounded-full text-base font-medium transition-all hover:scale-105 flex items-center gap-2"
               >
                 Leave us a Message →
               </button>
@@ -123,8 +123,8 @@ export default function ContactPage() {
             {/* Bottom Section - Contact Info */}
             <div className="flex flex-col md:flex-row items-start justify-between gap-8">
               <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-600">Contact Info</p>
-                <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">
+                <p className="text-[#20408B] text-sm font-bold uppercase tracking-wide mb-4">Contact Info</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-black leading-tight">
                   We are always
                   <br />
                   happy to assist you

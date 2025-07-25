@@ -52,10 +52,10 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-black text-sm font-semibold uppercase tracking-wide mb-4">
+          <p className="text-[#20408B] text-sm font-bold uppercase tracking-wide mb-4">
             PRICING
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">
+          <h2 className="text-2xl md:text-3xl font-bold text-black leading-tight">
             Flexible Plans That Grow with You
           </h2>
         </div>

@@ -62,7 +62,7 @@ export default function FAQPage() {
         </div>
         {/* FAQ Card */}
         <div className="flex-1 max-w-2xl w-full bg-[#20408B] rounded-2xl shadow-xl py-10 px-4 md:px-10 text-white self-end flex flex-col justify-center my-12 md:my-20" style={{minHeight: 320, maxHeight: 500}}>
-          <h1 className="text-lg md:text-xl lg:text-2xl font-bold mb-5">Do you have questions?</h1>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-5">Do you have questions?</h1>
           <div className="divide-y divide-white/20 text-xs md:text-sm">
             {faqs.map((faq, idx) => (
               <div key={faq.question}>
@@ -88,8 +88,8 @@ export default function FAQPage() {
             ))}
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between mt-5 gap-2">
-            <span className="text-white/80 text-xs md:text-sm">My question is not here.</span>
-            <button className="flex items-center gap-2 bg-white text-[#20408B] font-semibold px-4 py-2 rounded-full shadow-sm hover:bg-gray-100 transition-colors text-xs md:text-sm">
+            <span className="text-white/80 text-xs md:text-sm">My question is not here. </span>
+            <button className="flex items-center gap-2 bg-white text-[#20408B] font-medium px-8 py-3 rounded-full shadow-sm hover:bg-gray-100 transition-colors text-base">
               CONNECT US
               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </button>

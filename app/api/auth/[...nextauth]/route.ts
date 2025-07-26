@@ -1,12 +1,19 @@
 import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 const handler = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -18,9 +25,12 @@ const handler = NextAuth({
           return null;
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email
+            email: email
           }
         });
 
@@ -29,7 +39,7 @@ const handler = NextAuth({
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          password,
           user.password
         );
 
@@ -59,12 +69,22 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
+      if (token && session.user && token.id) {
+        const sessionUser = session.user as typeof session.user & { id: string };
+        sessionUser.id = token.id as string;
       }
       return session;
+    },
+    async signIn({ user, account, profile }) {
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // Redirect to dashboard after successful authentication
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
     },
   },
 });
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };

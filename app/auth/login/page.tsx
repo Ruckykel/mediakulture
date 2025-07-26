@@ -37,7 +37,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else if (result?.ok) {
-        // Successful login - the useEffect will handle the redirect
+        // Successful login - redirect to dashboard
         router.push("/dashboard");
       }
     } catch (error) {
@@ -48,7 +48,18 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    alert("Google Sign-In is temporarily disabled. Please use email/password for now.");
+    setIsLoading(true);
+    try {
+      await signIn("google", { 
+        callbackUrl: "/dashboard",
+        redirect: true 
+      });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("Google sign-in failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Show loading if checking authentication status
@@ -150,7 +161,7 @@ export default function LoginPage() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center opacity-50 cursor-not-allowed"
+              className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -170,7 +181,7 @@ export default function LoginPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Sign in with Google (Temporarily Disabled)
+              {isLoading ? "Signing in..." : "Sign in with Google"}
             </button>
 
             {/* Sign Up Link */}

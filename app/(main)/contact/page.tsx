@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import TrustedBy from "../landing/TrustedBy/TrustedBy";
+import TrustedBy from "../../landing/TrustedBy/TrustedBy";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

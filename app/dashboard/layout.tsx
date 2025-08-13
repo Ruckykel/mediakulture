@@ -1,11 +1,12 @@
 "use client";
 
 import { Providers } from "../providers";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { startGlobalFade } from "../components/useFadeNavigation";
 
 interface Brand {
   id: string;
@@ -48,6 +49,7 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [selectedBrand, setSelectedBrand] = useState<Brand>(brands[0]);
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -82,6 +84,14 @@ export default function DashboardLayout({
 
   const userInitials = session.user?.name ? getUserInitials(session.user.name) : 'U';
 
+  const isActive = (href: string, exact?: boolean) => {
+    if (!pathname) return false;
+    if (exact) {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <Providers>
       <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''}`}>
@@ -107,9 +117,13 @@ export default function DashboardLayout({
                 className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
-                    <span className="text-xs font-medium text-blue-600">{selectedBrand.shortName}</span>
-                  </div>
+                  <Image
+                    src={selectedBrand.logo}
+                    alt={selectedBrand.name}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 object-contain"
+                  />
                   <span className="text-sm font-medium text-gray-900">{selectedBrand.name}</span>
                 </div>
                 <svg
@@ -135,9 +149,13 @@ export default function DashboardLayout({
                       }}
                       className="w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors"
                     >
-                      <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
-                        <span className="text-xs font-medium text-blue-600">{brand.shortName}</span>
-                      </div>
+                      <Image
+                        src={brand.logo}
+                        alt={brand.name}
+                        width={24}
+                        height={24}
+                        className="w-6 h-6 object-contain"
+                      />
                       <span className="text-sm text-gray-900">{brand.name}</span>
                     </button>
                   ))}
@@ -152,7 +170,10 @@ export default function DashboardLayout({
               {/* Dashboard */}
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard', true) ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard', true) ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
@@ -164,7 +185,10 @@ export default function DashboardLayout({
               {/* Calendar */}
               <Link
                 href="/dashboard/calendar"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard/calendar') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard/calendar') ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -175,7 +199,10 @@ export default function DashboardLayout({
               {/* Content */}
               <Link
                 href="/dashboard/content"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard/content') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard/content') ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -186,7 +213,10 @@ export default function DashboardLayout({
               {/* Platforms */}
               <Link
                 href="/dashboard/platforms"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard/platforms') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard/platforms') ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -197,7 +227,10 @@ export default function DashboardLayout({
               {/* Tools */}
               <Link
                 href="/dashboard/tools"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard/tools') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard/tools') ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -209,7 +242,10 @@ export default function DashboardLayout({
               {/* Team Settings */}
               <Link
                 href="/dashboard/settings"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/dashboard/settings') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                aria-current={isActive('/dashboard/settings') ? 'page' : undefined}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -226,7 +262,10 @@ export default function DashboardLayout({
               <div className="space-y-2">
                 <Link
                   href="/dashboard/help-center"
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/dashboard/help-center') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  aria-current={isActive('/dashboard/help-center') ? 'page' : undefined}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -236,7 +275,10 @@ export default function DashboardLayout({
 
                 <Link
                   href="/dashboard/team"
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/dashboard/team') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  aria-current={isActive('/dashboard/team') ? 'page' : undefined}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -257,38 +299,41 @@ export default function DashboardLayout({
                 <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
                 <p className="text-xs text-gray-500">{session.user?.email}</p>
               </div>
-              <button
-                onClick={() => router.push("/auth/login")}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Top Bar */}
+          {/* Top Bar with welcome and logout */}
           <header className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               </div>
               <div className="flex items-center space-x-4">
+                <div className="hidden sm:flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-blue-600">{userInitials}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">Welcome, {session.user?.name || session.user?.email}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    startGlobalFade("logout");
+                    signOut({ callbackUrl: "/" });
+                  }}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Logout
+                </button>
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                  aria-label="Toggle dark mode"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6v-6H4v6zM4 5h6V4a1 1 0 00-1-1H5a1 1 0 00-1 1v1zm0 6h6V9H4v2zm0 4h6v-2H4v2z" />
                   </svg>
                 </button>
               </div>

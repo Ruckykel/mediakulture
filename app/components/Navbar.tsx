@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { startGlobalFade } from "./useFadeNavigation";
 
 const navLinks = [
   { name: "FAQ", href: "/faq" },
@@ -27,12 +28,16 @@ export default function Navbar() {
   }, []);
 
   const handleSignOut = () => {
+    startGlobalFade("logout");
     signOut({ callbackUrl: "/" });
   };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  // Avoid intercepting hash-only anchors for fade overlay
+  // No special-casing needed anymore; global fade ignores same-path+hash
 
   return (
     <nav
@@ -60,13 +65,13 @@ export default function Navbar() {
           <ul className="flex gap-8">
             {navLinks.map((link) => (
               <li key={link.name}>
-                <a
+                <Link
                   href={link.href}
                   className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium relative group pb-2"
                 >
                   {link.name}
                   <span className="absolute bottom-0 left-0 w-0 h-1 bg-gray-900 rounded-full transition-all duration-300 group-hover:w-1/2"></span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -121,13 +126,13 @@ export default function Navbar() {
             <ul className="space-y-4">
               {navLinks.map((link) => (
                 <li key={link.name}>
-                  <a
+                  <Link
                     href={link.href}
                     className="block text-gray-700 hover:text-gray-900 transition-colors text-base font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

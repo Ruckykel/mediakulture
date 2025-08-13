@@ -13,6 +13,7 @@ const handler = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: false,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -75,7 +76,16 @@ const handler = NextAuth({
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
+      // If user attempts Google sign-in with an email that already exists with credentials,
+      // reject with a clear NextAuth error code so UI can explain.
+      if (account?.provider === 'google') {
+        const existing = await prisma.user.findUnique({ where: { email: user.email as string } });
+        if (existing && !existing.emailVerified && existing.password) {
+          // Keep default behavior; NextAuth will surface OAuthAccountNotLinked
+          return true;
+        }
+      }
       return true;
     },
     async redirect({ url, baseUrl }) {

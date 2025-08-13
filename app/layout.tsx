@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import NavbarWrapper from "./components/NavbarWrapper";
-import Footer from "./components/Footer";
+import FooterVisibility from "./components/FooterVisibility";
+import NavigationFade from "./components/NavigationFade";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +29,8 @@ export default function RootLayout({
         <Providers>
           <NavbarWrapper />
           {children}
-          <Footer />
+          <FooterVisibility />
+          <NavigationFade />
         </Providers>
       </body>
     </html>

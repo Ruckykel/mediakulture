@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { startGlobalFade } from "../../components/useFadeNavigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,16 +12,38 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (status === "authenticated" && session) {
-      router.push("/dashboard");
+      if (!isRedirecting) {
+        setIsRedirecting(true);
+        startGlobalFade();
+        router.replace("/dashboard");
+      }
     }
-  }, [status, session, router]);
+  }, [status, session, router, isRedirecting]);
+
+  // Surface NextAuth error codes from provider redirects
+  useEffect(() => {
+    const code = searchParams?.get("error");
+    if (!code) return;
+    const messages: Record<string, string> = {
+      OAuthAccountNotLinked:
+        "This email is already registered with a different sign-in method. Use your email and password, then connect Google in Settings.",
+      AccessDenied: "Access denied. Please try a different account.",
+      Configuration: "Authentication is not configured correctly. Please try again later.",
+      CredentialsSignin: "Invalid email or password.",
+      Verification: "Verification error. Please try again.",
+      Default: "Sign in failed. Please try again.",
+    };
+    setError(messages[code] || messages.Default);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +60,10 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else if (result?.ok) {
-        // Successful login - redirect to dashboard
-        router.push("/dashboard");
+        // Successful login - redirect to dashboard with fade
+        setIsRedirecting(true);
+        startGlobalFade();
+        router.replace("/dashboard");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -50,6 +75,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      setIsRedirecting(true);
+      startGlobalFade();
       await signIn("google", { 
         callbackUrl: "/dashboard",
         redirect: true 
@@ -72,7 +99,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
+      {(isLoading || isRedirecting) && (
+        <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-2 border-gray-300 border-t-[#20408B] animate-spin" aria-label="Loading" />
+        </div>
+      )}
       {/* Left Section - Login Form */}
       <div className="flex-1 flex items-center justify-center bg-gradient-to-r from-[#d3dbeb] to-white px-8">
         <div className="w-full max-w-md">

@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Navbar from "./Navbar";
+import Footer from "./Footer";
 
-export default function NavbarWrapper() {
-  const pathname = usePathname();
+export default function FooterVisibility() {
+  const pathname = usePathname() || "";
   const isAuthPage = pathname.startsWith("/auth");
   const isDashboard = pathname.startsWith("/dashboard");
 
@@ -12,5 +12,7 @@ export default function NavbarWrapper() {
     return null;
   }
 
-  return <Navbar />;
-} 
+  return <Footer />;
+}
+
+

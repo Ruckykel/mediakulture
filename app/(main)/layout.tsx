@@ -1,6 +1,3 @@
-import NavbarWrapper from "../components/NavbarWrapper";
-import Footer from "../components/Footer";
-
 export default function MainLayout({
   children,
 }: {
@@ -8,9 +5,7 @@ export default function MainLayout({
 }) {
   return (
     <>
-      <NavbarWrapper />
-      {children}
-      <Footer />
+		  {children}
     </>
   );
 } 

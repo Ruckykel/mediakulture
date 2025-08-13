@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { startGlobalFade } from "../../components/useFadeNavigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -47,9 +48,10 @@ export default function SignupPage() {
         setError(data.error || "Something went wrong");
       } else {
         setSuccess("Account created successfully! Redirecting to login...");
+        startGlobalFade();
         setTimeout(() => {
           router.push("/auth/login");
-        }, 2000);
+        }, 1200);
       }
     } catch (error) {
       setError("An error occurred. Please try again.");

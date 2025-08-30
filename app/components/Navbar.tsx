@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
-import { startGlobalFade } from "./useFadeNavigation";
+import { useSession } from "next-auth/react";
 
 const navLinks = [
   { name: "FAQ", href: "/faq" },
   { name: "Solutions", href: "/solutions" },
+  { name: "Media Coverage", href: "/media-coverage" },
   { name: "Contact", href: "/contact" },
 ];
 
@@ -27,10 +27,7 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSignOut = () => {
-    startGlobalFade("logout");
-    signOut({ callbackUrl: "/" });
-  };
+  // Auth actions are simplified for marketing navbar. If authenticated, show Dashboard link; no logout here.
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -80,17 +77,12 @@ export default function Navbar() {
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
           {status === "authenticated" && session ? (
-            <div className="flex items-center gap-4">
-              <span className="text-gray-800 font-medium">
-                Welcome, {session.user?.name || session.user?.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-transform hover:scale-105"
-              >
-                Logout
-              </button>
-            </div>
+            <Link 
+              href="/dashboard" 
+              className="bg-[#20408B] hover:bg-[#16306a] text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:scale-105"
+            >
+              Dashboard
+            </Link>
           ) : (
             <>
               <Link href="/auth/login" className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-transform hover:scale-105">
@@ -141,18 +133,13 @@ export default function Navbar() {
             <div className="pt-4 border-t border-gray-200">
               {status === "authenticated" && session ? (
                 <div className="space-y-3">
-                  <div className="text-gray-800 font-medium text-sm">
-                    Welcome, {session.user?.name || session.user?.email}
-                  </div>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left text-gray-700 hover:text-gray-900 text-base font-medium py-2"
+                  <Link 
+                    href="/dashboard" 
+                    className="block bg-[#20408B] hover:bg-[#16306a] text-white px-6 py-3 rounded-full text-base font-medium text-center transition-all hover:scale-105"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    Logout
-                  </button>
+                    Dashboard
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-3">

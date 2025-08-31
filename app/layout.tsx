@@ -6,6 +6,9 @@ import NavbarWrapper from "./components/NavbarWrapper";
 import FooterVisibility from "./components/FooterVisibility";
 import NavigationFade from "./components/NavigationFade";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

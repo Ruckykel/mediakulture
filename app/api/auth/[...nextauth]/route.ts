@@ -7,15 +7,9 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const handler = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: false,
-    }),
-    CredentialsProvider({
+// Build providers list conditionally so Google is optional
+const providers = [
+  CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -55,7 +49,21 @@ const handler = NextAuth({
         };
       }
     })
-  ],
+];
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.unshift(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: false,
+    })
+  );
+}
+
+const handler = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers,
   session: {
     strategy: "jwt",
   },

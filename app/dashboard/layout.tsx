@@ -3,7 +3,7 @@
 import { Providers } from "../providers";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { startGlobalFade } from "../components/useFadeNavigation";
@@ -52,12 +52,80 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [selectedBrand, setSelectedBrand] = useState<Brand>(brands[0]);
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     }
   }, [status, router]);
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
+
+  // Close on outside tap/scroll/touchmove and lock body scroll
+  useEffect(() => {
+    if (!isMobileSidebarOpen) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (sidebarRef.current?.contains(target)) return;
+      if (toggleRef.current?.contains(target)) return;
+      setIsMobileSidebarOpen(false);
+    };
+
+    const onScroll = () => setIsMobileSidebarOpen(false);
+    const onTouchMove = () => setIsMobileSidebarOpen(false);
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("scroll", onScroll as EventListener);
+      window.removeEventListener("touchmove", onTouchMove as EventListener);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isMobileSidebarOpen]);
+
+  // Swipe to close
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0]?.clientX ?? null;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isMobileSidebarOpen) return;
+      const startX = touchStartX.current;
+      const endX = e.changedTouches[0]?.clientX ?? 0;
+      if (startX !== null && endX - startX < -40) {
+        // swipe left to close
+        setIsMobileSidebarOpen(false);
+      }
+      if (startX !== null && endX - startX > 40) {
+        // swipe right also closes per request
+        setIsMobileSidebarOpen(false);
+      }
+      touchStartX.current = null;
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart as EventListener);
+      el.removeEventListener("touchend", onTouchEnd as EventListener);
+    };
+  }, [isMobileSidebarOpen]);
 
   if (status === "loading") {
     return (
@@ -94,8 +162,22 @@ export default function DashboardLayout({
   return (
     <Providers>
       <div className={`min-h-screen flex`}>
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Backdrop (mobile) */}
+        {isMobileSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+            aria-hidden="true"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar (collapsible on mobile, static on lg+) */}
+        <div
+          ref={sidebarRef}
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-200 lg:static ${
+            isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
           {/* Logo */}
           <div className="p-6">
             <Image
@@ -164,7 +246,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-6">
+          <nav className="flex-1 px-6 overflow-y-auto">
             <div className="space-y-2">
               {/* Dashboard */}
               <Link
@@ -253,6 +335,19 @@ export default function DashboardLayout({
               </Link>
             </div>
 
+            {/* Sidebar Logout for mobile */}
+            <div className="mt-6 lg:hidden">
+              <button
+                onClick={() => {
+                  startGlobalFade("logout");
+                  signOut({ callbackUrl: "/" });
+                }}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Logout
+              </button>
+            </div>
+
             {/* Support Section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -304,27 +399,40 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Top Bar with welcome and logout */}
-          <header className="bg-white border-b border-gray-200 px-6 py-4">
+          {/* Top Bar with hamburger, logo, welcome and logout (logout hidden on xs; in drawer instead) */}
+          <header className="sticky top-0 z-[60] bg-white border-b border-gray-200 px-4 md:px-6 py-4 md:py-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {/* Title removed intentionally */}
-              </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <Link href="/dashboard" className="lg:hidden flex items-center gap-2">
+                  <Image src="/MediaKultureLogo.png" alt="MediaKulture" width={110} height={28} className="h-6 w-auto" />
+                </Link>
                 <div className="hidden sm:flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-blue-600">{userInitials}</span>
                   </div>
                   <span className="text-sm font-medium text-gray-900">Welcome, {session.user?.name || session.user?.email}</span>
                 </div>
+              </div>
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
                     startGlobalFade("logout");
                     signOut({ callbackUrl: "/" });
                   }}
-                  className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="hidden sm:inline-flex px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Logout
+                </button>
+                <button
+                  ref={toggleRef}
+                  className="lg:hidden inline-flex flex-col justify-center items-center w-8 h-8"
+                  aria-label="Toggle sidebar"
+                  aria-expanded={isMobileSidebarOpen}
+                  onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                >
+                  <span className={`block w-6 h-0.5 bg-gray-900 transition-transform ${isMobileSidebarOpen ? 'rotate-45 translate-y-1' : ''}`}></span>
+                  <span className={`block w-6 h-0.5 bg-gray-900 transition-opacity my-1 ${isMobileSidebarOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                  <span className={`block w-6 h-0.5 bg-gray-900 transition-transform ${isMobileSidebarOpen ? '-rotate-45 -translate-y-1' : ''}`}></span>
                 </button>
               </div>
             </div>
@@ -334,6 +442,18 @@ export default function DashboardLayout({
           <main className="flex-1 bg-gray-50">
             {children}
           </main>
+
+          {/* Footer */}
+          <footer className="bg-white border-t border-gray-200 px-4 md:px-6 py-4">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-600">
+              <span>© {new Date().getFullYear()} MediaKulture</span>
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard/help-center" className="hover:text-gray-900">Support</Link>
+                <Link href="/#pricing" className="hover:text-gray-900">Pricing</Link>
+                <Link href="/terms" className="hover:text-gray-900">Terms</Link>
+              </div>
+            </div>
+          </footer>
         </div>
       </div>
     </Providers>

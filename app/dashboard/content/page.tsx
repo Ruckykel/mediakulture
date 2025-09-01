@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Content {
   id: string;
@@ -60,11 +60,23 @@ const contentItems: Content[] = [
   }
 ];
 
+const platformOptions = ['Instagram', 'Facebook', 'Twitter/X', 'LinkedIn', 'TikTok', 'YouTube'];
+
 export default function ContentPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'draft' | 'scheduled' | 'published'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Generator state
+  const [prompt, setPrompt] = useState('');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['Instagram']);
+  const [tone, setTone] = useState<'informative' | 'playful' | 'professional'>('informative');
+  const [generating, setGenerating] = useState(false);
+  const [generatedCaption, setGeneratedCaption] = useState<string>('');
+  const [generatedHashtags, setGeneratedHashtags] = useState<string[]>([]);
+  const [generatedIdeas, setGeneratedIdeas] = useState<string[]>([]);
+  const [scheduleAt, setScheduleAt] = useState<string>(''); // e.g. 2025-09-01T18:00
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -103,7 +115,7 @@ export default function ContentPage() {
       );
       case 'story': return (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       );
       case 'video': return (
@@ -126,17 +138,203 @@ export default function ContentPage() {
     return matchesFilter && matchesSearch;
   });
 
+  function togglePlatform(p: string) {
+    setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  }
+
+  function simpleHashtagify(text: string): string[] {
+    const words = text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3)
+      .slice(0, 6);
+    const uniques: string[] = [];
+    for (const w of words) {
+      if (!uniques.includes(w)) uniques.push(w);
+    }
+    return uniques.map(w => `#${w.replace(/\s+/g, '')}`);
+  }
+
+  async function handleGenerate() {
+    if (!prompt.trim()) return;
+    setGenerating(true);
+    const tonePrefix = tone === 'playful' ? '🎉' : tone === 'professional' ? '🔷' : '💡';
+    const caption = `${tonePrefix} ${prompt.trim()} — ${selectedPlatforms.join(', ')} audience in mind.`;
+    const hashtags = simpleHashtagify(prompt);
+    const ideas = [
+      `Hook: ${prompt.slice(0, 60)}...`,
+      'CTA: Tell us your thoughts in the comments!',
+      'Variant: Turn this into a short video + carousel.'
+    ];
+    await new Promise(r => setTimeout(r, 500));
+    setGeneratedCaption(caption);
+    setGeneratedHashtags(hashtags);
+    setGeneratedIdeas(ideas);
+    setGenerating(false);
+  }
+
+  function handleCopy(text: string) {
+    if (typeof window !== 'undefined') navigator.clipboard.writeText(text);
+  }
+
+  function handlePostNow() {
+    alert('Post queued to publish now to: ' + selectedPlatforms.join(', '));
+  }
+
+  function handleSchedule() {
+    if (!scheduleAt) {
+      alert('Pick a schedule date/time');
+      return;
+    }
+    alert(`Scheduled for ${scheduleAt} on ${selectedPlatforms.join(', ')}`);
+  }
+
+  const posted = useMemo(() => contentItems.filter(c => c.status === 'published').slice(0, 5), []);
+  const drafts = useMemo(() => contentItems.filter(c => c.status === 'draft').slice(0, 5), []);
+  const scheduled = useMemo(() => contentItems.filter(c => c.status === 'scheduled').slice(0, 5), []);
+  const [recentTab, setRecentTab] = useState<'posted' | 'drafts' | 'scheduled'>('posted');
+
   return (
-    <div className="p-8">
+    <div className="px-4 py-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Content</h1>
-          
           <div className="flex items-center space-x-4">
             <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               + Create Content
             </button>
+          </div>
+        </div>
+
+        {/* AI Content Generator */}
+        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Content Generator</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: Prompt and options */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prompt</label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={4}
+                placeholder="Describe what you want to post about..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Platforms</label>
+                  <div className="flex flex-wrap gap-2">
+                    {platformOptions.map(p => (
+                      <button
+                        key={p}
+                        onClick={() => togglePlatform(p)}
+                        className={`px-3 py-1 rounded-full text-sm border ${selectedPlatforms.includes(p) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tone</label>
+                  <select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="informative">Informative</option>
+                    <option value="playful">Playful</option>
+                    <option value="professional">Professional</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating || !prompt.trim()}
+                  className={`px-4 py-2 rounded-lg text-white ${generating ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
+                >
+                  {generating ? 'Generating…' : 'Generate'}
+                </button>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-700">Schedule</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduleAt}
+                    onChange={(e) => setScheduleAt(e.target.value)}
+                    className="px-2 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <button onClick={handlePostNow} disabled={!generatedCaption} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">Post Now</button>
+                <button onClick={handleSchedule} disabled={!generatedCaption || !scheduleAt} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">Schedule</button>
+              </div>
+            </div>
+
+            {/* Right: Generated output */}
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Caption</label>
+                  {generatedCaption && (
+                    <button onClick={() => handleCopy(generatedCaption)} className="text-xs text-blue-600 hover:underline">Copy</button>
+                  )}
+                </div>
+                <textarea readOnly rows={6} value={generatedCaption} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Hashtags</label>
+                  {generatedHashtags.length > 0 && (
+                    <button onClick={() => handleCopy(generatedHashtags.join(' '))} className="text-xs text-blue-600 hover:underline">Copy</button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {generatedHashtags.map(tag => (
+                    <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quick Ideas</label>
+                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                  {generatedIdeas.map((idea, idx) => (
+                    <li key={idx}>{idea}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent activity */}
+        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+            <div className="flex gap-2">
+              <button onClick={() => setRecentTab('posted')} className={`px-3 py-1 rounded-lg text-sm ${recentTab === 'posted' ? 'bg-blue-600 text-white' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>Posted</button>
+              <button onClick={() => setRecentTab('drafts')} className={`px-3 py-1 rounded-lg text-sm ${recentTab === 'drafts' ? 'bg-blue-600 text-white' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>Drafts</button>
+              <button onClick={() => setRecentTab('scheduled')} className={`px-3 py-1 rounded-lg text-sm ${recentTab === 'scheduled' ? 'bg-blue-600 text-white' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>Scheduled</button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {(recentTab === 'posted' ? posted : recentTab === 'drafts' ? drafts : scheduled).map(item => (
+              <div key={item.id} className="p-4 border border-gray-200 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center">
+                    {getTypeIcon(item.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{item.title}</p>
+                    <p className="text-xs text-gray-500">{item.platform} • {item.createdAt}{item.scheduledFor ? ` • ${item.scheduledFor}` : ''}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>{item.status}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -151,8 +349,7 @@ export default function ContentPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {(['all', 'draft', 'scheduled', 'published'] as const).map((status) => (
               <button
                 key={status}
@@ -219,61 +416,6 @@ export default function ContentPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Content Creation Tools */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Text Posts</h3>
-            <p className="text-sm text-gray-600 mb-4">Create engaging text content for social media platforms.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-              Create Post
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Visual Content</h3>
-            <p className="text-sm text-gray-600 mb-4">Design stunning images and graphics for your campaigns.</p>
-            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-              Create Visual
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Video Content</h3>
-            <p className="text-sm text-gray-600 mb-4">Produce high-quality video content for multiple platforms.</p>
-            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
-              Create Video
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Articles & Blogs</h3>
-            <p className="text-sm text-gray-600 mb-4">Write compelling articles and blog posts for your audience.</p>
-            <button className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors">
-              Write Article
-            </button>
-          </div>
         </div>
       </div>
     </div>

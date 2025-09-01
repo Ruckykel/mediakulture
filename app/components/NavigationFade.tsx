@@ -9,91 +9,110 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
  * that other components can dispatch to trigger the fade (e.g., on logout).
  */
 export default function NavigationFade() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isFading, setIsFading] = useState(false);
-  const watchdog = useRef<number | null>(null);
-  const searchParams = useSearchParams();
-  const currentSearch = searchParams?.toString() || "";
+	const router = useRouter();
+	const pathname = usePathname();
+	const [isFading, setIsFading] = useState(false);
+	const watchdog = useRef<number | null>(null);
+	const startedAtMs = useRef<number | null>(null);
+	const searchParams = useSearchParams();
+	const currentSearch = searchParams?.toString() || "";
 
-  const startFadeWithWatchdog = () => {
-    setIsFading(true);
-    if (watchdog.current) {
-      window.clearTimeout(watchdog.current);
-    }
-    watchdog.current = window.setTimeout(() => {
-      // Safety: auto-clear fade if navigation stalls
-      setIsFading(false);
-      watchdog.current = null;
-    }, 4000);
-  };
+	const MIN_VISIBLE_MS = 200;
+	const WATCHDOG_MS = 5000;
 
-  useEffect(() => {
-    // When route changes complete (pathname updates), remove fade and watchdog
-    if (isFading) {
-      const t = window.setTimeout(() => setIsFading(false), 150);
-      if (watchdog.current) {
-        window.clearTimeout(watchdog.current);
-        watchdog.current = null;
-      }
-      return () => window.clearTimeout(t);
-    }
-  }, [pathname, currentSearch, isFading]);
+	const startFadeWithWatchdog = () => {
+		setIsFading(true);
+		startedAtMs.current = Date.now();
+		if (watchdog.current) {
+			window.clearTimeout(watchdog.current);
+		}
+		watchdog.current = window.setTimeout(() => {
+			// Safety: auto-clear fade if navigation stalls
+			setIsFading(false);
+			startedAtMs.current = null;
+			watchdog.current = null;
+		}, WATCHDOG_MS);
+	};
 
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
+	useEffect(() => {
+		// When route changes complete (pathname/search updates), remove fade after minimum visible time
+		if (isFading) {
+			const now = Date.now();
+			const started = startedAtMs.current ?? now;
+			const elapsed = now - started;
+			const delay = Math.max(0, MIN_VISIBLE_MS - elapsed);
+			const t = window.setTimeout(() => {
+				setIsFading(false);
+				startedAtMs.current = null;
+			}, delay);
+			if (watchdog.current) {
+				window.clearTimeout(watchdog.current);
+				watchdog.current = null;
+			}
+			return () => window.clearTimeout(t);
+		}
+	}, [pathname, currentSearch, isFading]);
 
-      const anchor = target.closest("a[href]") as HTMLAnchorElement | null;
-      if (!anchor) return;
+	useEffect(() => {
+		const handleClick = (e: MouseEvent) => {
+			const target = e.target as HTMLElement | null;
+			if (!target) return;
 
-      const href = anchor.getAttribute("href") || "";
-      const isExternal = /^(https?:)?\/\//i.test(href);
-      const isHashOnly = href.startsWith("#");
-      const isNewTab = anchor.target === "_blank" || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
+			const anchor = target.closest("a[href]") as HTMLAnchorElement | null;
+			if (!anchor) return;
 
-      // Internal same-origin navigations that change pathname or search
-      if (!isExternal && !isHashOnly && !isNewTab) {
-        const targetUrl = new URL(href, window.location.href);
-        const samePathAndSearch =
-          targetUrl.pathname === window.location.pathname && targetUrl.search === window.location.search;
-        if (samePathAndSearch) {
-          // Let browser handle (may be same-page hash or just no-op)
-          return;
-        }
-        // Do not prevent default so Next.js can perform fast client-side nav
-        // Start fade immediately and keep until path/search updates or watchdog clears
-        startFadeWithWatchdog();
-      }
-    };
+			const href = anchor.getAttribute("href") || "";
+			const isExternal = /^(https?:)?\/\//i.test(href);
+			const isHashOnly = href.startsWith("#");
+			const isNewTab = anchor.target === "_blank" || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
 
-    const handleFadeStart = (e: Event) => {
-      // Always start fade; for logout we keep the same behavior but could customize if needed
-      startFadeWithWatchdog();
-    };
+			// Internal same-origin navigations that change pathname or search
+			if (!isExternal && !isHashOnly && !isNewTab) {
+				const targetUrl = new URL(href, window.location.href);
+				const samePathAndSearch =
+					targetUrl.pathname === window.location.pathname && targetUrl.search === window.location.search;
+				if (samePathAndSearch) {
+					// Let browser handle (may be same-page hash or just no-op)
+					return;
+				}
+				// Do not prevent default so Next.js can perform fast client-side nav
+				// Start fade immediately and keep until path/search updates or watchdog clears
+				startFadeWithWatchdog();
+			}
+		};
 
-    document.addEventListener("click", handleClick);
-    window.addEventListener("app:fade-start", handleFadeStart as EventListener);
+		const handleFadeStart = (e: Event) => {
+			// Always start fade; for logout we keep the same behavior but could customize if needed
+			startFadeWithWatchdog();
+		};
 
-    const handleHashChange = () => setIsFading(false);
-    window.addEventListener("hashchange", handleHashChange);
+		document.addEventListener("click", handleClick);
+		window.addEventListener("app:fade-start", handleFadeStart as EventListener);
 
-    return () => {
-      document.removeEventListener("click", handleClick);
-      window.removeEventListener("app:fade-start", handleFadeStart as EventListener);
-      window.removeEventListener("hashchange", handleHashChange);
-    };
-  }, [router]);
+		const handleHashChange = () => setIsFading(false);
+		window.addEventListener("hashchange", handleHashChange);
 
-  return (
-    <div
-      aria-hidden="true"
-      className={`fixed inset-0 z-[9999] pointer-events-none transition-opacity duration-200 ${
-        isFading ? "opacity-30 bg-white" : "opacity-0"
-      }`}
-    />
-  );
+		return () => {
+			document.removeEventListener("click", handleClick);
+			window.removeEventListener("app:fade-start", handleFadeStart as EventListener);
+			window.removeEventListener("hashchange", handleHashChange);
+		};
+	}, [router]);
+
+	return (
+		<div
+			aria-hidden="true"
+			className={`fixed inset-0 z-[9999] transition-opacity duration-200 ${
+				isFading ? "opacity-100 pointer-events-auto bg-white/90 backdrop-blur-sm" : "opacity-0 pointer-events-none"
+			}`}
+		>
+			{isFading && (
+				<div className="absolute inset-0 flex items-center justify-center">
+					<div className="h-8 w-8 animate-spin rounded-full border-4 border-[#20408B]/30 border-t-[#20408B]" />
+				</div>
+			)}
+		</div>
+	);
 }
 
 

@@ -35,7 +35,7 @@ export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section className="relative min-h-screen flex items-end justify-center bg-[#f6faff] overflow-hidden">
+    <section className="relative md:h-screen flex items-start md:items-end justify-center bg-[#f6faff] overflow-hidden pt-24">
       {/* Background image */}
       <Image
         src="/FAQBackground.png"
@@ -45,23 +45,21 @@ export default function FAQPage() {
         quality={90}
         priority
       />
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row items-end justify-between px-4 md:px-8 gap-8 min-h-[600px]">
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-end justify-between px-4 md:px-8 gap-8 md:h-full">
         {/* Woman image */}
-        <div className="flex-1 flex justify-center md:justify-start relative">
-          <div className="w-full h-full flex items-end">
-            <div className="relative w-auto h-[340px] md:w-[350px] md:h-[500px] lg:w-[350px] lg:h-[500px] flex items-end">
-              <Image
-                src="/FAQWoman.png"
-                alt="FAQ Woman"
-                fill
-                className="object-contain md:absolute md:bottom-0 md:left-0"
-                priority
-              />
-            </div>
+        <div className="order-2 md:order-1 flex-1 relative w-full">
+          <div className="relative w-full h-[280px] md:w-[350px] md:h-[500px] lg:w-[350px] lg:h-[500px] mx-auto md:mx-0">
+            <Image
+              src="/FAQWoman.png"
+              alt="FAQ Woman"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
         {/* FAQ Card */}
-        <div className="flex-1 max-w-2xl w-full bg-[#20408B] rounded-2xl shadow-xl py-10 px-4 md:px-10 text-white self-end flex flex-col justify-center my-12 md:my-20" style={{minHeight: 320, maxHeight: 500}}>
+        <div className="order-1 md:order-2 flex-1 max-w-2xl w-full bg-[#20408B] rounded-2xl shadow-xl py-10 px-4 md:px-10 text-white self-start md:self-end flex flex-col justify-center my-4 md:my-20" style={{minHeight: 320, maxHeight: 500}}>
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-5">Do you have questions?</h1>
           <div className="divide-y divide-white/20 text-xs md:text-sm">
             {faqs.map((faq, idx) => (

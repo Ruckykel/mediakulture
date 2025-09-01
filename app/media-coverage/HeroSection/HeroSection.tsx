@@ -42,8 +42,8 @@ export default function HeroSection() {
 			</div>
 
 			{/* Content */}
-			<div className="relative z-10">
-			<div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between h-full px-4 md:px-8 pb-4 md:pb-0">
+			<div className="relative z-10 w-full">
+			<div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-center justify-center md:justify-start w-full min-h-[calc(100vh-6rem)] md:min-h-[calc(100vh-7rem)] px-4 md:px-8 pb-8 md:pb-0">
         {/* Left Side */}
         <div className="flex-1 flex flex-col justify-center items-center md:items-start max-w-full md:max-w-xl w-full text-center md:text-left">
           <h1 className="text-4xl md:text-5xl  font-extrabold text-black leading-tight mb-4 md:mb-6">
@@ -70,7 +70,7 @@ export default function HeroSection() {
               Join Now
             </button>
             <button className="flex items-center justify-center gap-2 border border-black px-4 sm:px-6 py-3 rounded-full text-sm sm:text-base font-medium text-black hover:bg-gray-100 transition-all hover:scale-105 group">
-              <span className="inline-block w-5 h-5 rounded-full border-2 border-black flex items-center justify-center transition-transform group-hover:rotate-180">
+              <span className="w-5 h-5 rounded-full border-2 border-black flex items-center justify-center transition-transform group-hover:rotate-180">
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M6 11V5l5 3-5 3z" fill="currentColor"/></svg>
               </span>
               View Demo

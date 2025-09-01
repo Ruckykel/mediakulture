@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -16,6 +16,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { data: session, status } = useSession();
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +28,40 @@ export default function Navbar() {
     handleScroll(); // Check scroll position on mount
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close mobile menu on outside tap/click, scroll attempts, or touchmove
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (menuRef.current?.contains(target)) return;
+      if (toggleRef.current?.contains(target)) return;
+      setMobileMenuOpen(false);
+    };
+
+    const handleScrollOrTouch = () => {
+      setMobileMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("scroll", handleScrollOrTouch, { passive: true });
+    window.addEventListener("touchmove", handleScrollOrTouch, { passive: true });
+
+    // Prevent background scroll while menu is open
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      window.removeEventListener("scroll", handleScrollOrTouch as EventListener);
+      window.removeEventListener("touchmove", handleScrollOrTouch as EventListener);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   // Auth actions are simplified for marketing navbar. If authenticated, show Dashboard link; no logout here.
 
@@ -39,13 +75,15 @@ export default function Navbar() {
   return (
     <nav
       className={`w-full fixed top-0 left-0 z-50 transition-colors duration-300 ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-sm"
-          : "bg-transparent"
+        mobileMenuOpen
+          ? "bg-white shadow-sm"
+          : scrolled
+            ? "bg-white/80 backdrop-blur-sm"
+            : "bg-transparent"
       }`}
-      style={{ backdropFilter: scrolled ? undefined : "blur(0px)" }}
+      style={{ backdropFilter: scrolled && !mobileMenuOpen ? "" : "blur(0px)" }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between py-6 md:py-3 px-4 md:px-8">
+      <div className="relative z-[60] max-w-7xl mx-auto flex items-center justify-between py-6 md:py-3 px-4 md:px-8">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/MediaKultureLogo.png"
@@ -100,9 +138,12 @@ export default function Navbar() {
 
         {/* Mobile Menu Button */}
         <button
+          ref={toggleRef}
           onClick={toggleMobileMenu}
           className="md:hidden flex flex-col justify-center items-center w-8 h-8"
           aria-label="Toggle mobile menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
         >
           <span className={`block w-6 h-0.5 bg-[#20408B] transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
           <span className={`block w-6 h-0.5 bg-[#20408B] transition-all duration-300 mt-1 ${mobileMenuOpen ? 'opacity-0' : ''}`}></span>
@@ -110,8 +151,15 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
+      {/* Backdrop overlay (mobile only) placed below header but above page */}
+      <div
+        className={`md:hidden fixed inset-0 z-[40] bg-black/30 transition-opacity ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Menu (above overlay) */}
+      <div id="mobile-menu" ref={menuRef} className={`md:hidden relative z-[50] ${mobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200">
           <div className="px-4 py-6 space-y-4">
             {/* Mobile Navigation Links */}
@@ -145,7 +193,7 @@ export default function Navbar() {
                 <div className="space-y-3">
                   <Link 
                     href="/auth/login" 
-                    className="block text-gray-700 hover:text-gray-900 text-base font-medium py-2"
+                    className="block border border-[#20408B] text-[#20408B] px-6 py-3 rounded-full text-base font-medium text-center transition-all hover:bg-[#20408B]/10"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login
